@@ -1,0 +1,19 @@
+
+#python d:/Turing_Machine/CFG_Converter.py -f d:/Turing_Machine/sample_grammar.txt --canonical
+#http://127.0.0.1:8000/interactive_cnf.html
+#python -m http.server 8000
+#Then visit:
+http://127.0.0.1:8000/interactive_cnf.html
+
+S → ASB
+A → aAS | a | ε 
+B → SbS | A | bb
+
+#S → AB
+#A → a
+#B → b
+
+#S → 1A / 0B
+#A → 1AA / 0S / 0
+#B → 0BB / 1S / 1
+

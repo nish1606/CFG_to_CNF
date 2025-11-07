@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFG to CNF Converter - Interactive Learning Tool</title>
+    <style>
+        /* (styles unchanged from your snippet) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+            overflow: hidden;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .input-panel {
+            background: linear-gradient(145deg, #f8f9fe 0%, #e8eaf6 100%);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '🎯';
+            font-size: 1.2em;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: #1976D2;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .grammar-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        .grammar-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .examples-section {
+            margin: 20px 0;
+        }
+
+        .example-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .convert-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .convert-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .output-panel {
+            position: relative;
+        }
+
+        .steps-container {
+            background: white;
+            border-radius: 15px;
+        }
+
+        .step {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fe 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            border-left: 6px solid #667eea;
+            animation: fadeInUp 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .step-title {
+            flex: 1;
+            font-size: 1.4em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .step-description {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        .grammar-display {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+        }
+
+        .production {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .production:hover {
+            background: #e8eaf6;
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .production-lhs {
+            color: #e91e63;
+            font-weight: bold;
+        }
+
+        .production-arrow {
+            color: #667eea;
+            margin: 0 10px;
+        }
+
+        .production-rhs {
+            color: #333;
+        }
+        .production-alt-sep { color:#999; padding:0 6px; font-weight:600; }
+
+        .terminal {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .non-terminal {
+            color: #2196F3;
+            font-weight: bold;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #d4f1f4 0%, #c8e6c9 100%);
+            border: 2px solid #4caf50;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .highlight-box strong {
+            color: #2e7d32;
+        }
+
+        .verification {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border: 3px solid #4caf50;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .verification.success {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        }
+
+        .verification.error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-color: #f44336;
+        }
+
+        .verification h3 {
+            color: #2e7d32;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .verification.error h3 {
+            color: #c62828;
+        }
+
+        .emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .visual-arrow {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2em;
+            color: #667eea;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 CFG to CNF Converter</h1>
+            <p>Interactive Chomsky Normal Form Conversion with Step-by-Step Visualization</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-panel">
+                <div class="section-title">📝 Input Grammar</div>
+                
+                <div class="info-box">
+                    <strong>How to write productions:</strong>
+                    Format: <code>A → aB | bC | ε</code><br>
+                    • Use → or -> for arrow<br>
+                    • Use | to separate alternatives<br>
+                    • Use ε for empty string<br>
+                    • Non-terminals: uppercase (A, B, S)<br>
+                    • Terminals: lowercase (a, b, 0, 1)
+                </div>
+
+                <textarea class="grammar-input" id="grammarInput" placeholder="Enter your grammar here...
+Example:
+S → AB | a
+A → aA | ε
+B → bB | b"></textarea>
+
+                <div class="examples-section">
+                    <div class="section-title">📚 Example Grammars</div>
+                    <button class="example-btn" onclick="loadExample(1)">Example 1: Simple Grammar</button>
+                    <button class="example-btn" onclick="loadExample(2)">Example 2: Palindromes</button>
+                    <button class="example-btn" onclick="loadExample(3)">Example 3: a^n b^n</button>
+                    <button class="example-btn" onclick="loadExample(4)">Example 4: Balanced Parentheses</button>
+                </div>
+
+                <button class="convert-btn" onclick="convertGrammar()">🚀 Convert to CNF</button>
+                <button class="convert-btn" style="margin-top:10px; background:linear-gradient(135deg,#43cea2 0%,#185a9d 100%);" onclick="convertServer()">🌐 Convert via Server</button>
+            </div>
+
+            <div class="output-panel">
+                <div id="outputContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const examples = {
+            1: `S → AB | a
+A → a | B
+B → b | ε`,
+            2: `S → aSa | bSb | a | b | ε`,
+            3: `S → aSb | ab`,
+            4: `S → SS | (S) | ε`
+        };
+
+        function loadExample(num) {
+            document.getElementById('grammarInput').value = examples[num];
+        }
+
+        function parseGrammar(text) {
+            const lines = text.split('\n').filter(l => l.trim());
+            const grammar = {};
+            let startSymbol = null;
+
+            for (const line of lines) {
+                const normalized = line.replaceAll('/', '|');
+                const parts = normalized.split(/→|->/);
+                if (parts.length < 2) continue;
+                const lhs = parts[0].trim();
+                const rhsAll = parts.slice(1).join('→').trim(); // join to avoid stray arrows in RHS
+                if (!lhs) continue;
+                if (!startSymbol) startSymbol = lhs;
+                
+                const alternatives = rhsAll.split('|').map(s => s.trim());
+                grammar[lhs] = alternatives.map(alt => {
+                    if (alt === 'ε' || alt === 'eps' || alt === 'epsilon') {
+                        return ['ε'];
+                    }
+                    // If tokens separated by spaces, use them; otherwise split into characters
+                    const tokens = alt.split(/\s+/).filter(s => s);
+                    if (tokens.length > 1) {
+                        return tokens.flatMap(token => token.length === 1 ? [token] : token.split(''));
+                    } else {
+                        return alt.split('');
+                    }
+                });
+            }
+
+            return { grammar, startSymbol };
+        }
+
+        function findNullable(grammar) {
+            const nullable = new Set();
+            let changed = true;
+
+            while (changed) {
+                changed = false;
+                for (const [lhs, productions] of Object.entries(grammar)) {
+                    if (nullable.has(lhs)) continue;
+                    for (const rhs of productions) {
+                        if (rhs.length === 1 && rhs[0] === 'ε') {
+                            nullable.add(lhs);
+                            changed = true;
+                            break;
+                        }
+                        if (rhs.every(s => nullable.has(s))) {
+                            nullable.add(lhs);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return nullable;
+        }
+
+        function generateVariants(rhs, nullable) {
+            if (rhs.length === 0) return [[]];
+            
+            const variants = [];
+            
+            function generate(idx, current) {
+                if (idx === rhs.length) {
+                    variants.push([...current]);
+                    return;
+                }
+                
+                const symbol = rhs[idx];
+                current.push(symbol);
+                generate(idx + 1, current);
+                current.pop();
+                
+                if (nullable.has(symbol)) {
+                    generate(idx + 1, current);
+                }
+            }
+            
+            generate(0, []);
+            return variants.filter(v => v.length > 0);
+        }
+
+        function eliminateEpsilon(grammar, startSymbol) {
+            const nullable = findNullable(grammar);
+            const newGrammar = {};
+
+            for (const [lhs, productions] of Object.entries(grammar)) {
+                newGrammar[lhs] = [];
+                
+                for (const rhs of productions) {
+                    if (rhs.length === 1 && rhs[0] === 'ε') {
+                        // keep epsilon ONLY if lhs == startSymbol and no other productions remain after variant generation
+                        // We'll decide after variant generation; skip adding immediately.
+                        continue;
+                    }
+                    
+                    const variants = generateVariants(rhs, nullable);
+                    for (const variant of variants) {
+                        const key = variant.join(',');
+                        if (!newGrammar[lhs].some(p => p.join(',') === key)) {
+                            newGrammar[lhs].push(variant);
+                        }
+                    }
+                }
+                // After processing all non-ε productions, if lhs is startSymbol and it was explicitly nullable originally AND
+                // no empty string variant was produced, we may allow ε only for that start symbol.
+                if (lhs === startSymbol && nullable.has(lhs)) {
+                    // Only add ε if not already derivable by other means
+                    if (!newGrammar[lhs].some(p => p.length === 1 && p[0] === 'ε')) {
+                        newGrammar[lhs].push(['ε']);
+                    }
+                }
+            }
+
+            return { grammar: newGrammar, nullable: Array.from(nullable) };
+        }
+
+        function eliminateUnit(grammar) {
+            // Find unit productions
+            const unitPairs = new Set();
+            for (const [lhs, productions] of Object.entries(grammar)) {
+                for (const rhs of productions) {
+                    if (rhs.length === 1 && grammar.hasOwnProperty(rhs[0])) {
+                        unitPairs.add(`${lhs}→${rhs[0]}`);
+                    }
+                }
+            }
+
+            // Compute closure
+            const closure = new Set(unitPairs);
+            let changed = true;
+            while (changed) {
+                changed = false;
+                for (const pair1 of Array.from(closure)) {
+                    const [a, b] = pair1.split('→');
+                    for (const pair2 of Array.from(closure)) {
+                        const [b2, c] = pair2.split('→');
+                        if (b === b2 && !closure.has(`${a}→${c}`) && a !== c) {
+                            closure.add(`${a}→${c}`);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
+            // Generate new productions
+            const newGrammar = {};
+            for (const lhs of Object.keys(grammar)) {
+                newGrammar[lhs] = [];
+                
+                // Add non-unit productions from lhs
+                for (const rhs of grammar[lhs]) {
+                    if (!(rhs.length === 1 && grammar.hasOwnProperty(rhs[0]))) {
+                        const key = rhs.join(',');
+                        if (!newGrammar[lhs].some(p => p.join(',') === key)) {
+                            newGrammar[lhs].push(rhs);
+                        }
+                    }
+                }
+                
+                // Add from closure
+                for (const pair of closure) {
+                    const [a, b] = pair.split('→');
+                    if (a === lhs && grammar[b]) {
+                        for (const rhs of grammar[b]) {
+                            if (!(rhs.length === 1 && grammar.hasOwnProperty(rhs[0]))) {
+                                const key = rhs.join(',');
+                                if (!newGrammar[lhs].some(p => p.join(',') === key)) {
+                                    newGrammar[lhs].push(rhs);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return { grammar: newGrammar, unitPairs: Array.from(unitPairs), closure: Array.from(closure) };
+        }
+
+        function toCNF(grammar) {
+            const terminals = new Set();
+            const nonTerminals = new Set(Object.keys(grammar));
+
+            for (const productions of Object.values(grammar)) {
+                for (const rhs of productions) {
+                    for (const symbol of rhs) {
+                        if (!nonTerminals.has(symbol) && symbol !== 'ε') {
+                            terminals.add(symbol);
+                        }
+                    }
+                }
+            }
+
+            const terminalVars = {};
+            const newGrammar = JSON.parse(JSON.stringify(grammar)); // deep copy
+            const createdPairs = {};
+            let freshCounter = 0;
+
+            // Pre-assign simple letter names for terminals (digits keep T0/T1)
+            const poolLetters = ['C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','U','V','W','X','Y','Z'].filter(c => !nonTerminals.has(c));
+            for (const t of Array.from(terminals).sort()) {
+                let name;
+                if (t === '0') name = 'T0';
+                else if (t === '1') name = 'T1';
+                else name = poolLetters.length ? poolLetters.shift() : `X${freshCounter++}`;
+                if (nonTerminals.has(name)) name = `X${freshCounter++}`;
+                terminalVars[t] = name;
+                nonTerminals.add(name);
+                newGrammar[name] = [[t]];
+            }
+
+            function getTerminalVar(t) {
+                return terminalVars[t];
+            }
+
+            function getPairVar(a, b) {
+                const key = `${a}|${b}`;
+                if (createdPairs[key]) return createdPairs[key];
+                let name;
+                if (a === b && a.length === 1 && a.toUpperCase() === a) {
+                    name = `${a}1`;
+                    if (newGrammar[name] && JSON.stringify(newGrammar[name]) !== JSON.stringify([[a, b]])) {
+                        // conflict, fall back
+                        name = `X${freshCounter++}`;
+                    }
+                } else {
+                    name = `X${freshCounter++}`;
+                }
+                if (!newGrammar[name]) newGrammar[name] = [];
+                // avoid duplicate insertion
+                if (!newGrammar[name].some(r => r.length === 2 && r[0] === a && r[1] === b)) {
+                    newGrammar[name].push([a, b]);
+                }
+                nonTerminals.add(name);
+                createdPairs[key] = name;
+                return name;
+            }
+
+            for (const [lhs, productions] of Object.entries(grammar)) {
+                newGrammar[lhs] = [];
+                for (const rhs of productions) {
+                    if (rhs.length === 1) {
+                        // Keep single terminals as-is (A → a). This avoids unit A→T.
+                        newGrammar[lhs].push(rhs);
+                        continue;
+                    }
+                    // replace terminals in longer productions
+                    const replaced = rhs.map(s => (terminals.has(s) ? getTerminalVar(s) : s));
+
+                    if (replaced.length === 2 && replaced.every(s => nonTerminals.has(s))) {
+                        newGrammar[lhs].push(replaced);
+                        continue;
+                    }
+
+                    let cur = replaced;
+                    while (cur.length > 2) {
+                        // prefer last two if both non-terminals
+                        const a = cur[cur.length - 2];
+                        const b = cur[cur.length - 1];
+                        let v;
+                        if (nonTerminals.has(a) && nonTerminals.has(b)) {
+                            v = getPairVar(a, b);
+                            cur = cur.slice(0, -2).concat([v]);
+                        } else {
+                            const a2 = cur[0], b2 = cur[1];
+                            v = getPairVar(a2, b2);
+                            cur = [v].concat(cur.slice(2));
+                        }
+                    }
+                    newGrammar[lhs].push(cur);
+                }
+            }
+
+            return { grammar: newGrammar, terminalVars };
+        }
+
+        function formatProduction(lhs, rhs) {
+            const isTerminal = (s) => s.length === 1 && s.toLowerCase() === s && s !== 'ε';
+            const isNonTerminal = (s) => s.length >= 1 && (s[0].toUpperCase() === s[0] || s.startsWith('T') || s.startsWith('X'));
+
+            function withSubscripts(sym) {
+                // Render X0, X12 as X<sub>0</sub>, X<sub>12</sub> (display only)
+                if (/^X\d+$/.test(sym)) return sym.replace(/^X(\d+)$/, 'X<sub>$1</sub>');
+                return sym;
+            }
+
+            const formattedRhs = rhs.map(symbol => {
+                const disp = withSubscripts(symbol);
+                if (symbol === 'ε') {
+                    return '<span style="color: #9c27b0; font-style: italic;">ε</span>';
+                } else if (isTerminal(symbol)) {
+                    return `<span class="terminal">${disp}</span>`;
+                } else if (isNonTerminal(symbol)) {
+                    return `<span class="non-terminal">${disp}</span>`;
+                }
+                return disp;
+            }).join('');
+
+            const lhsDisp = lhs.replace(/^X(\d+)$/, 'X<sub>$1</sub>');
+            return `<div class="production">
+                <span class="production-lhs">${lhsDisp}</span>
+                <span class="production-arrow">→</span>
+                <span class="production-rhs">${formattedRhs}</span>
+            </div>`;
+        }
+
+        function displayGrammar(grammar) {
+            let html = '<div class="grammar-display">';
+            for (const [lhs, productions] of Object.entries(grammar)) {
+                for (const rhs of productions) {
+                    html += formatProduction(lhs, rhs);
+                }
+            }
+            html += '</div>';
+            return html;
+        }
+
+        // Grouped display: one line per LHS with alternatives joined by |
+        function displayGrammarGrouped(grammar) {
+            const isTerminal = (s) => s.length === 1 && s.toLowerCase() === s && s !== 'ε';
+            const isNonTerminal = (s) => s.length >= 1 && (s[0].toUpperCase() === s[0] || s.startsWith('T') || s.startsWith('X'));
+            function displayName(symbol) {
+                // For display, convert X0 -> X<sub>0</sub> (visual only)
+                if (/^[X][0-9]+$/.test(symbol)) {
+                    return symbol.replace(/^X([0-9]+)$/,'X<sub>$1</sub>');
+                }
+                return symbol;
+            }
+            function fmt(rhs) {
+                return rhs.map(symbol => {
+                    let disp = displayName(symbol);
+                    if (disp === 'ε') return '<span style="color:#9c27b0;font-style:italic;">ε</span>';
+                    if (isTerminal(disp)) return `<span class="terminal">${disp}</span>`;
+                    if (isNonTerminal(disp)) return `<span class="non-terminal">${disp}</span>`;
+                    return disp;
+                }).join(' '); // space-separated symbols for readability (A B instead of AB)
+            }
+            let html = '<div class="grammar-display">';
+            // Order: S first if present, then A, B, C, D..., then X_*
+            const keys = Object.keys(grammar);
+            keys.sort((a,b)=>{
+                // Put S first
+                if (a==='S' && b!=='S') return -1;
+                if (b==='S' && a!=='S') return 1;
+                const ax = /^X\d+$/.test(a), bx=/^X\d+$/.test(b);
+                if (ax && !bx) return 1; // X* after letters
+                if (!ax && bx) return -1;
+                return a.localeCompare(b);
+            });
+            for (const lhs of keys) {
+                const seen = new Set();
+                const parts = [];
+                for (const rhs of grammar[lhs] || []) {
+                    const f = fmt(rhs);
+                    if (!seen.has(f)) { seen.add(f); parts.push(f); }
+                }
+                const joined = parts.join('<span class="production-alt-sep">|</span>');
+                const lhsDisp = lhs.replace(/^X(\d+)$/, 'X<sub>$1</sub>');
+                html += `<div class="production"><span class="production-lhs">${lhsDisp}</span><span class="production-arrow">→</span><span class="production-rhs">${joined}</span></div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function grammarToText(grammar) {
+            // produce a compact text representation suitable for download or copy
+            let lines = [];
+            for (const [lhs, productions] of Object.entries(grammar)) {
+                const rhsText = productions.map(r => r.join('') === 'ε' ? 'ε' : r.join('')).join(' | ');
+                lines.push(`${lhs} → ${rhsText}`);
+            }
+            return lines.join('\n');
+        }
+
+        function downloadGrammar(grammar) {
+            const text = grammarToText(grammar);
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'grammar_cnf.txt';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (e) {
+                // fallback
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    ta.remove();
+                    return true;
+                } catch (err) {
+                    ta.remove();
+                    return false;
+                }
+            }
+        }
+
+        function verifyCNF(grammar, startSymbol=null) {
+            // Accept standard CNF OR the variant using terminal variables (A→T and T→a)
+            const nonTerminals = new Set(Object.keys(grammar));
+            const errors = [];
+
+            // helper: is terminal variable (only produces exactly one terminal)
+            function isTerminalVar(nt) {
+                const prods = grammar[nt] || [];
+                return prods.length === 1 && prods[0].length === 1 && !(nonTerminals.has(prods[0][0])) && prods[0][0] !== 'ε';
+            }
+
+            for (const [lhs, productions] of Object.entries(grammar)) {
+                for (const rhs of productions) {
+                    if (rhs.length === 1) {
+                        const sym = rhs[0];
+                        if (sym === 'ε') {
+                            // Allow ε only for the (current) start symbol
+                            if (startSymbol && lhs === startSymbol) {
+                                // allowed
+                            } else {
+                                errors.push(`${lhs} → ε (ε allowed only for the start symbol)`);
+                            }
+                        } else {
+                            const isTerminal = sym.length === 1 && sym.toLowerCase() === sym;
+                            if (!isTerminal) {
+                                // allow A→T where T is a terminal variable
+                                if (!(nonTerminals.has(sym) && isTerminalVar(sym))) {
+                                    errors.push(`${lhs} → ${sym} (single symbol must be a terminal or a terminal-variable)`);
+                                }
+                            }
+                        }
+                    } else if (rhs.length === 2) {
+                        if (!(nonTerminals.has(rhs[0]) && nonTerminals.has(rhs[1]))) {
+                            errors.push(`${lhs} → ${rhs.join('')} (both symbols must be non-terminals)`);
+                        }
+                    } else {
+                        errors.push(`${lhs} → ${rhs.join('')} (RHS length must be 1 or 2 in CNF)`);
+                    }
+                }
+            }
+
+            return errors;
+        }
+
+        function convertGrammar() {
+            const input = document.getElementById('grammarInput').value.trim();
+            if (!input) {
+                alert('Please enter a grammar!');
+                return;
+            }
+
+            const output = document.getElementById('outputContainer');
+            output.innerHTML = '<div class="loading"><div class="spinner"></div>Converting...</div>';
+
+            setTimeout(() => {
+                try {
+                    const { grammar: originalGrammar, startSymbol } = parseGrammar(input);
+                    
+                    let html = '';
+
+                    // Step 0: Original Grammar
+                    html += `<div class="step" style="animation-delay: 0s;">
+                        <div class="step-header">
+                            <div class="step-number">0</div>
+                            <div class="step-title">Original Grammar</div>
+                        </div>
+                        <div class="step-description">
+                            This is your input grammar before any conversions. We'll transform it step by step into Chomsky Normal Form (CNF).
+                        </div>
+                        ${displayGrammar(originalGrammar)}
+                    </div>`;
+
+                    // Step 1: Add new start symbol ONLY if the start is nullable (can derive ε)
+                    let currentGrammar = JSON.parse(JSON.stringify(originalGrammar));
+                    let currentStart = startSymbol;
+                    const nullableAtStart = findNullable(currentGrammar);
+                    if (nullableAtStart.has(startSymbol)) {
+                        const newStart = 'S0';
+                        currentGrammar[newStart] = [[startSymbol]];
+                        currentStart = newStart;
+                    }
+
+                    html += `<div class="step" style="animation-delay: 0.1s;">
+                        <div class="step-header">
+                            <div class="step-number">1</div>
+                            <div class="step-title">Add New Start Symbol (if needed)</div>
+                        </div>
+                        <div class="step-description">
+                            🎯 <strong>Why?</strong> We add a new start symbol only when the original start can derive ε, so we can safely remove ε while preserving the language.
+                        </div>
+                        ${displayGrammar(currentGrammar)}
+                    </div>`;
+
+                    html += '<div class="visual-arrow">⬇️</div>';
+
+                    // Step 2: Eliminate epsilon
+                    const { grammar: afterEpsilon, nullable } = eliminateEpsilon(currentGrammar, currentStart);
+                    currentGrammar = afterEpsilon;
+
+                    html += `<div class="step" style="animation-delay: 0.2s;">
+                        <div class="step-header">
+                            <div class="step-number">2</div>
+                            <div class="step-title">Eliminate ε-Productions</div>
+                        </div>
+                        <div class="step-description">
+                            🎯 <strong>Why?</strong> CNF doesn't allow empty productions (except for the start symbol if the language contains ε).<br><br>
+                            <strong>How?</strong> Find all nullable non-terminals (those that can produce ε), then create new productions by removing them in all possible combinations.
+                        </div>
+                        ${nullable.length > 0 ? `<div class="highlight-box">
+                            <strong>Nullable Non-terminals:</strong> ${nullable.join(', ')}
+                        </div>` : ''}
+                        ${displayGrammar(currentGrammar)}
+                    </div>`;
+
+                    html += '<div class="visual-arrow">⬇️</div>';
+
+                    // Step 3: Eliminate unit productions
+                    const { grammar: afterUnit, unitPairs, closure } = eliminateUnit(currentGrammar);
+                    currentGrammar = afterUnit;
+
+                    html += `<div class="step" style="animation-delay: 0.3s;">
+                        <div class="step-header">
+                            <div class="step-number">3</div>
+                            <div class="step-title">Eliminate Unit Productions</div>
+                        </div>
+                        <div class="step-description">
+                            🎯 <strong>Why?</strong> CNF doesn't allow productions like A → B (one non-terminal producing another).<br><br>
+                            <strong>How?</strong> Replace A → B with all productions of B. If B → C → D, replace A with all of D's productions too!
+                        </div>
+                        ${unitPairs.length > 0 ? `<div class="highlight-box">
+                            <strong>Unit Productions Found:</strong> ${unitPairs.join(', ')}<br>
+                            <strong>After Closure:</strong> ${closure.join(', ')}
+                        </div>` : ''}
+                        ${displayGrammar(currentGrammar)}
+                    </div>`;
+
+                    html += '<div class="visual-arrow">⬇️</div>';
+
+                    // Step 4: Convert to CNF
+                    const { grammar: finalGrammar, terminalVars } = toCNF(currentGrammar);
+
+                    html += `<div class="step" style="animation-delay: 0.4s;">
+                        <div class="step-header">
+                            <div class="step-number">4</div>
+                            <div class="step-title">Convert to CNF Form</div>
+                        </div>
+                        <div class="step-description">
+                            🎯 <strong>Why?</strong> CNF requires exactly 2 forms:<br>
+                            • A → BC (two non-terminals)<br>
+                            • A → a (single terminal)<br><br>
+                            <strong>How?</strong><br>
+                            1. Replace terminals in mixed productions with new variables (T0, T1, ...)<br>
+                            2. Break productions longer than 2 symbols using new variables (X0, X1, ...)
+                        </div>
+                        ${Object.keys(terminalVars).length > 0 ? `<div class="highlight-box">
+                            <strong>Terminal Variables Created:</strong><br>
+                            ${Object.entries(terminalVars).map(([t, v]) => `${v} → ${t}`).join('<br>')}
+                        </div>` : ''}
+                        ${displayGrammarGrouped(finalGrammar)}
+                    </div>`;
+
+                    // Verification
+                    const errors = verifyCNF(finalGrammar, currentStart);
+                    const isValid = errors.length === 0;
+
+                    html += `<div class="step" style="animation-delay: 0.5s;">
+                        <div class="step-header">
+                            <div class="step-number">✓</div>
+                            <div class="step-title">Verification</div>
+                        </div>
+                        <div class="${isValid ? 'verification success' : 'verification error'}">
+                            <div class="emoji">${isValid ? '✅' : '⚠️'}</div>
+                            <h3>${isValid ? 'Grammar is in Chomsky Normal Form' : 'Grammar is NOT in CNF'}</h3>
+                            <p>${isValid ? 'All productions are either A → a or A → BC.' : 'See issues below and adjust the grammar.'}</p>
+                            ${!isValid ? `<div style="text-align:left; margin-top:10px;"><strong>Problems:</strong><ul>${errors.map(e => `<li>${e}</li>`).join('')}</ul></div>` : ''}
+                            <div style="margin-top:15px; display:flex; gap:10px; justify-content:center;">
+                                <button class="example-btn" onclick="copyFinal()">Copy CNF</button>
+                                <button class="example-btn" onclick="downloadFinal()">Download CNF</button>
+                            </div>
+                        </div>
+                    </div>`;
+
+                    // Render final HTML
+                    output.innerHTML = html;
+
+                    // Attach copy/download handlers (use closure variables)
+                    window.copyFinal = async function() {
+                        const success = await copyToClipboard(grammarToText(finalGrammar));
+                        alert(success ? 'Copied CNF to clipboard' : 'Copy failed');
+                    };
+                    window.downloadFinal = function() {
+                        downloadGrammar(finalGrammar);
+                    };
+
+                } catch (err) {
+                    const output = document.getElementById('outputContainer');
+                    output.innerHTML = `<div class="step">
+                        <div class="step-header">
+                            <div class="step-number">!</div>
+                            <div class="step-title">Error</div>
+                        </div>
+                        <div class="step-description">
+                            <strong>Parsing/Conversion error:</strong><br>${err.message || err}
+                        </div>
+                    </div>`;
+                    console.error(err);
+                }
+            }, 250);
+        }
+
+        async function convertServer() {
+            const input = document.getElementById('grammarInput').value.trim();
+            if (!input) { alert('Please enter a grammar!'); return; }
+            const output = document.getElementById('outputContainer');
+            output.innerHTML = '<div class="loading"><div class="spinner"></div>Contacting server...</div>';
+
+            try {
+                const res = await fetch('http://127.0.0.1:5000/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ grammar: input })
+                });
+
+                if (!res.ok) {
+                    const txt = await res.text();
+                    throw new Error(`Server error ${res.status}: ${txt}`);
+                }
+
+                const data = await res.json();
+                // data.steps contains mappings of lhs -> ['ASB','a','ε'] etc.
+                const steps = data.steps || {};
+                let html = '';
+
+                // render each step if present
+                const order = ['after_add_start','after_epsilon','after_unit','final'];
+                const titles = {
+                    after_add_start: 'After Adding Start Symbol',
+                    after_epsilon: 'After ε-Elimination',
+                    after_unit: 'After Unit-Elimination',
+                    final: 'Final CNF Grammar'
+                };
+
+                function deserializeMap(map) {
+                    const g = {};
+                    for (const [lhs, rhss] of Object.entries(map)) {
+                        g[lhs] = rhss.map(r => {
+                            if (r === 'ε') return ['ε'];
+                            // split into single-character symbols
+                            return r.split('');
+                        });
+                    }
+                    return g;
+                }
+
+                for (const key of order) {
+                    if (!steps[key]) continue;
+                    const g = deserializeMap(steps[key]);
+                    const body = key === 'final' ? displayGrammarGrouped(g) : displayGrammar(g);
+                    html += `<div class="step"><div class="step-header"><div class="step-number">●</div><div class="step-title">${titles[key]}</div></div>${body}</div>`;
+                }
+
+                output.innerHTML = html || '<div class="step">No data returned from server.</div>';
+
+            } catch (err) {
+                output.innerHTML = `<div class="step"><div class="step-header"><div class="step-number">!</div><div class="step-title">Server Error</div></div><div class="step-description">${err.message}</div></div>`;
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
